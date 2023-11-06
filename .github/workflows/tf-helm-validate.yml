@@ -1,0 +1,31 @@
+name: TF for Helm
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [master]
+
+jobs:
+  tf_helm_validate:
+    runs-on: ubuntu-latest
+    environment: ${{ vars.ENVIRONMENT }}
+    name: Validate TF Helm
+    steps:
+      - name: Checking out the terraform code
+        uses: actions/checkout@v3
+
+      - name: Setup `Terraform`
+        uses: hashicorp/setup-terraform@v2
+
+      - name: Terraform fmt
+        id: fmt
+        run: terraform fmt -check
+        continue-on-error: true
+
+      - name: Terraform Init
+        id: init
+        run: terraform init
+
+      - name: Terraform Validate
+        id: validate
+        run: terraform validate

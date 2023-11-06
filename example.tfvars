@@ -1,2 +1,2 @@
 namespace = ""
-timeout   =
+timeout   = 600
