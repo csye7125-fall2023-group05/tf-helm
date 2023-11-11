@@ -17,6 +17,10 @@ jobs:
       - name: Setup `Terraform`
         uses: hashicorp/setup-terraform@v2
 
+      - name: Enter root tf directory
+        run: |
+          cd root
+
       - name: Terraform fmt
         id: fmt
         run: terraform fmt -check
