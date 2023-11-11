@@ -1,2 +1,0 @@
-namespace = ""
-timeout   = 600
