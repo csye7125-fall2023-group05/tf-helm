@@ -34,4 +34,4 @@ override.tf.json
 # variables
 dev.tfvars
 prod.tfvars
-values.yaml
+*values.yaml
