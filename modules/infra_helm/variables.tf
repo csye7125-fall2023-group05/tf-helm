@@ -1,5 +1,4 @@
-variable "namespace" {}
 variable "timeout" {}
-variable "values_file" {}
+variable "infra_values_file" {}
 variable "chart_path" {}
-variable "release_name" {}
+variable "infra_chart" {}
