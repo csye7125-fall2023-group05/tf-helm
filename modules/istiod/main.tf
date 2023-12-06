@@ -4,7 +4,7 @@ resource "helm_release" "istiod_chart" {
   create_namespace = true
   repository       = "https://istio-release.storage.googleapis.com/charts"
   chart            = "istiod"
-  timeout          = 120
+  timeout          = var.timeout
   cleanup_on_fail  = true
   force_update     = false
   wait             = true

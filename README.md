@@ -95,6 +95,8 @@ istioctl version
 istioctl analyze
 ```
 
+> **NOTE**: Add the `sidecar.istio.io/inject: "false"` annotation to the metadata section of the pod template. This will prevent the Istio sidecar from being injected into that specific pod.
+
 ## Configuring the chart values
 
 For specific `values.yaml`, refer their specific charts and create their respective `values.yaml` files based on the dummy `values.yaml` file.

@@ -22,6 +22,7 @@ resource "kubernetes_namespace" "istio_system" {
   }
 }
 
+# The namespace the gateway is deployed in must not have a `istio-injection=disabled` label
 resource "kubernetes_namespace" "istio_ingress" {
   metadata {
     labels = {
