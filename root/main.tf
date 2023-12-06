@@ -5,6 +5,7 @@ module "webapp_namespace" {
 module "istio_base" {
   depends_on = [module.webapp_namespace]
   source     = "../modules/istio_base"
+  timeout    = var.timeout
 }
 
 resource "time_sleep" "istall_istio_crds" {
@@ -15,6 +16,7 @@ resource "time_sleep" "istall_istio_crds" {
 module "istio_discovery" {
   depends_on = [time_sleep.istall_istio_crds]
   source     = "../modules/istiod"
+  timeout    = var.timeout
 }
 
 resource "time_sleep" "istall_istio_discovery" {
@@ -25,6 +27,7 @@ resource "time_sleep" "istall_istio_discovery" {
 module "istio_gateway" {
   depends_on = [time_sleep.istall_istio_discovery]
   source     = "../modules/istio_gateway"
+  timeout    = var.timeout
 }
 
 
