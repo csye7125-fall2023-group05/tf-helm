@@ -97,6 +97,70 @@ istioctl analyze
 
 > **NOTE**: Add the `sidecar.istio.io/inject: "false"` annotation to the metadata section of the pod template. This will prevent the Istio sidecar from being injected into that specific pod.
 
+## Monitoring Stack
+
+To setup a monitoring stack, we will use [Prometheus](https://prometheus.io/) and [Grafana](https://grafana.com/).
+Instead of installing the helm charts for these applications, we will use the custom helm chart which includes the grafana helm chart as a dependency in the prometheus chart (developed by the prometheus community). We will use the [kube-prometheus-stack](https://github.com/prometheus-community/helm-charts/blob/main/charts/kube-prometheus-stack/README.md) from the prometheus community.
+
+> NOTE: This chart was formerly named prometheus-operator chart, now renamed to more clearly reflect that it installs the kube-prometheus project stack, within which Prometheus Operator is only one component.
+
+### Working with kube-prometheus-stack
+
+1. Get the Helm repository information
+
+   ```bash
+   helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+   helm repo update
+   ```
+
+2. By default, this chart installs additional, dependent charts:
+
+   - [prometheus-community/kube-state-metrics](https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-state-metrics)
+   - [prometheus-community/prometheus-node-exporter](https://github.com/prometheus-community/helm-charts/tree/main/charts/prometheus-node-exporter)
+   - [grafana/grafana](https://github.com/grafana/helm-charts/tree/main/charts/grafana)
+
+   > NOTE: To disable dependencies during installation, see [multiple releases](https://github.com/prometheus-community/helm-charts/blob/main/charts/kube-prometheus-stack/README.md#multiple-releases).
+
+3. To configure the kube-prometheus-stack helm chart, refer the [documentation](https://github.com/prometheus-community/helm-charts/blob/main/charts/kube-prometheus-stack/README.md#configuration). To see the default values, use the command:
+
+   ```bash
+   helm show values prometheus-community/kube-prometheus-stack
+   ```
+
+> \[!IMPORTANT]\
+> [Workaround for known issues on GKE](https://github.com/prometheus-community/helm-charts/blob/main/charts/kube-prometheus-stack/README.md#running-on-private-gke-clusters)
+> When Google configure the control plane for private clusters, they automatically configure VPC peering between your Kubernetes cluster’s network and a separate Google managed project. In order to restrict what Google are able to access within your cluster, the firewall rules configured restrict access to your Kubernetes pods. This means that in order to use the webhook component with a GKE private cluster, you must configure an additional firewall rule to allow the GKE control plane access to your webhook pod.
+> You can read more information on how to add firewall rules for the GKE control plane nodes in the [GKE docs](https://cloud.google.com/kubernetes-engine/docs/how-to/private-clusters#add_firewall_rules)
+> Alternatively, you can disable the hooks by setting `prometheusOperator.admissionWebhooks.enabled=false`.
+
 ## Configuring the chart values
 
-For specific `values.yaml`, refer their specific charts and create their respective `values.yaml` files based on the dummy `values.yaml` file.
+For specific `values.yaml`, refer their specific charts and create their respective `values.yaml` files based on the dummy `values.yaml` file. You can also use the `example.*.yaml` files in the `root/` directory to view specific values for the chart values.
+
+## Infrastructure Setup
+
+Once we have all our chart `values.yaml` configured, we can apply our Terraform configuration to install the helm charts to our kubernetes cluster.
+
+- Initialize Terraform
+
+  ```bash
+  terraform init
+  ```
+
+- Validate the Terraform infrastructure configuration as code
+
+  ```bash
+  terraform validate -json
+  ```
+
+- Plan the infrastructure setup
+
+  ```bash
+  terraform plan -var-file="prod.tfvars"
+  ```
+
+- Apply the infrastructure to the kubernetes cluster after verifying the configuration in the previous steps
+
+  ```bash
+  terraform apply --auto-approve -var-file="prod.tfvars"
+  ```

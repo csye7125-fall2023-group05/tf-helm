@@ -1,43 +1,54 @@
-module "webapp_namespace" {
+module "namespaces" {
   source = "../modules/namespace"
 }
 
 module "istio_base" {
-  depends_on = [module.webapp_namespace]
+  depends_on = [module.namespaces]
   source     = "../modules/istio_base"
   timeout    = var.timeout
 }
 
-resource "time_sleep" "istall_istio_crds" {
+resource "time_sleep" "install_istio_crds" {
   depends_on      = [module.istio_base]
   create_duration = "20s"
 }
 
 module "istio_discovery" {
-  depends_on = [time_sleep.istall_istio_crds]
+  depends_on = [time_sleep.install_istio_crds]
   source     = "../modules/istiod"
   timeout    = var.timeout
 }
 
-resource "time_sleep" "istall_istio_discovery" {
+resource "time_sleep" "install_istio_discovery" {
   depends_on      = [module.istio_discovery]
   create_duration = "20s"
 }
 
 module "istio_gateway" {
-  depends_on = [time_sleep.istall_istio_discovery]
+  depends_on = [time_sleep.install_istio_discovery]
   source     = "../modules/istio_gateway"
   timeout    = var.timeout
 }
 
 
-resource "time_sleep" "istall_istio_gateway" {
+resource "time_sleep" "install_istio_gateway" {
   depends_on      = [module.istio_gateway]
   create_duration = "20s"
 }
 
+module "monitoring_stack" {
+  depends_on                  = [time_sleep.install_istio_gateway]
+  source                      = "../modules/kube_prometheus"
+  timeout                     = var.timeout
+  kube_prometheus_values_file = var.kube_prometheus_values_file
+}
+
+resource "time_sleep" "install_monitoring_stack" {
+  depends_on      = [module.monitoring_stack]
+  create_duration = "20s"
+}
 module "infra_dependencies" {
-  depends_on        = [time_sleep.istall_istio_gateway]
+  depends_on        = [time_sleep.install_monitoring_stack]
   source            = "../modules/infra_helm"
   timeout           = var.timeout
   infra_values_file = var.infra_values_file

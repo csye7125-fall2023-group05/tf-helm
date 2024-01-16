@@ -16,6 +16,12 @@ variable "webapp_values_file" {
   default     = "./webapp_values.yaml"
 }
 
+variable "kube_prometheus_values_file" {
+  type        = string
+  description = "The path to the kube_prometheus_values.yaml file for the helm chart"
+  default     = "./kube_prometheus_values.yaml"
+}
+
 variable "chart_path" {
   type        = string
   description = "The path to the charts/ directory to install local charts"

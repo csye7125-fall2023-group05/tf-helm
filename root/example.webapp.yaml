@@ -1,0 +1,118 @@
+# Default values for webapp-helm-chart.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+image:
+  repository: quay.io/pwncorp
+  name: webapp
+  tag: 1.2.2
+  pullPolicy: Always
+
+initContainer:
+  repository: quay.io/pwncorp
+  name: migrate
+  tag: 1.1.1
+  pullPolicy: Always
+
+imagePullSecrets:
+  type: kubernetes.io/dockerconfigjson
+  dockerConfig: b2theW1yaGFja2VyCg==
+
+namespace: webapp
+
+hpa:
+  metrics:
+    averageUtilization: 5
+  minReplicas: 1
+  maxReplicas: 5
+
+deployStrat:
+  rolling: RollingUpdate
+  maxSurge: 1
+  maxUnavailable: 0
+
+progressDeadlineSeconds: 120
+minReadySeconds: 30
+
+probes:
+  path: /healthz
+
+config:
+  app_hostname: localhost
+  app_port: "3000"
+  app_db: app
+  app_dbport: "5432"
+  app_dbschema: app
+  k8s_group: webappcron.csye7125-fall2023-group05.cloud
+  k8s_api_version: v1
+  k8s_cr_kind: Cron
+  k8s_cr_kind_plural: crons
+  k8s_namespace: webapp
+  k8s_broker_0: infra-helm-release-kafka-broker-0.infra-helm-release-kafka-broker-headless.deps.svc.cluster.local:9094
+  k8s_broker_1: infra-helm-release-kafka-broker-1.infra-helm-release-kafka-broker-headless.deps.svc.cluster.local:9094
+  k8s_broker_2: infra-helm-release-kafka-broker-2.infra-helm-release-kafka-broker-headless.deps.svc.cluster.local:9094
+  k8s_client_id: webapp
+  k8s_docker_config_json: b2theW1yaGFja2VyCg==
+
+  k8s_topic: healthcheck
+
+secret:
+  type: Opaque
+  username: app_user
+  password: app_user@pswd
+
+podLabel:
+  app: webapp
+  service: api
+
+psql:
+  enabled: true
+
+selectorLabel:
+  app: webapp
+  service: api
+
+livenessConfig:
+  initialDelaySeconds: 40
+  periodSeconds: 10
+
+readinessConfig:
+  initialDelaySeconds: 40
+  periodSeconds: 10
+
+service:
+  type: LoadBalancer
+  port: 3000
+  dbport: 5432
+
+postgresql:
+  image:
+    tag: 15.5.0-debian-11-r5
+  auth:
+    username: app_user
+    password: app_user@pswd
+    database: app
+  primary:
+    persistence:
+      size: 1Gi
+    labels:
+      app: webapp-db
+    podLabels:
+      app: webapp-db
+    resources:
+      limits:
+        memory: "1024Mi"
+        cpu: "1"
+      requests:
+        memory: "128Mi"
+        cpu: "0.5"
+
+resources:
+  limits:
+    memory: "1024Mi"
+    cpu: "0.9"
+  requests:
+    memory: "512Mi"
+    cpu: "0.5"

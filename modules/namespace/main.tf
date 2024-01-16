@@ -31,3 +31,12 @@ resource "kubernetes_namespace" "istio_ingress" {
     name = "istio-ingress"
   }
 }
+
+resource "kubernetes_namespace" "prometheus" {
+  metadata {
+    labels = {
+      istio-injection = "enabled"
+    }
+    name = "prometheus"
+  }
+}
