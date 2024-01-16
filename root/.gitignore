@@ -32,6 +32,6 @@ override.tf.json
 # example: *tfplan*
 
 # variables
-dev.tfvars
-prod.tfvars
+*.tfvars
 *values.yaml
+!example*

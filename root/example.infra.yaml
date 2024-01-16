@@ -1,0 +1,113 @@
+replicaCount: 1
+image:
+  repository: quay.io/pwncorp
+  name: consumer
+  tag: 1.1.3
+  pullPolicy: Always
+initContainer:
+  repository: quay.io/pwncorp
+  name: initconsumer
+  tag: 1.0.1
+  pullPolicy: Always
+imagePullSecrets:
+  type: kubernetes.io/dockerconfigjson
+  dockerConfig: b2theW1yaGFja2VyCg==
+
+namespace: deps
+deployStrat:
+  rolling: RollingUpdate
+  maxSurge: 1
+  maxUnavailable: 0
+progressDeadlineSeconds: 120
+minReadySeconds: 30
+configs:
+  kafka_port: "9094"
+  client_id: webapp
+  topic: healthcheck
+  db: consumer
+  dbport: "5432"
+  app_dbschema: app
+secret:
+  type: Opaque
+  username: consumer_user
+  password: consumer@pswd
+podLabel:
+  app: consumer
+service:
+  type: ClusterIP
+  port: 80
+resources:
+  limits:
+    memory: 512Mi
+    cpu: "0.8"
+  requests:
+    memory: 128Mi
+    cpu: "0.4"
+psql:
+  enabled: true
+postgresql:
+  image:
+    tag: 15.5.0-debian-11-r5
+  auth:
+    username: consumer_user
+    password: consumer@pswd
+    database: consumer
+  primary:
+    persistence:
+      size: 1Gi
+    labels:
+      app: consumer-db
+    podLabels:
+      app: consumer-db
+    resources:
+      limits:
+        memory: 1024Mi
+        cpu: "1"
+      requests:
+        memory: 512Mi
+        cpu: "0.5"
+kafka:
+  listeners:
+    client:
+      protocol: PLAINTEXT
+    controller:
+      protocol: PLAINTEXT
+    interbroker:
+      protocol: PLAINTEXT
+    external:
+      protocol: PLAINTEXT
+  controller:
+    replicaCount: 0
+  broker:
+    replicaCount: 3
+    persistence:
+      size: 1Gi
+    resources:
+      limits:
+        memory: 1024Mi
+        cpu: "1"
+      requests:
+        memory: 512Mi
+        cpu: "0.5"
+  serviceAccount:
+    create: false
+  provisioning:
+    enabled: true
+    numPartitions: 3
+    replicationFactor: 1
+    podAnnotations:
+      sidecar.istio.io/inject: "false"
+    topics:
+      - name: healthcheck
+        partitions: 3
+        replicationFactor: 1
+        config:
+          max.message.bytes: 64000
+          flush.messages: 1
+  kraft:
+    enabled: false
+  zookeeper:
+    enabled: true
+    persistence:
+      size: 1Gi
+Transform: AWS::Serverless-2016-10-31
