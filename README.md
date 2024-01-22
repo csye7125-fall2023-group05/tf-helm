@@ -14,6 +14,7 @@ provider "helm" {
 
 Based on the `KUBECONFIG` value, the helm chart will be installed on that particular cluster.
 
+> \[!IMPORTANT]\
 > Due to an on-going issue with Terraform Helm Provider [[reference](https://github.com/hashicorp/terraform-provider-helm/issues/932)] which prevents the Terraform resource to pull a chart from a private GitHub repository (even after providing a GitHub PAT), we are forced to install the Helm chart locally.
 
 ## Kubernetes Provider
@@ -85,7 +86,8 @@ Here are key aspects and advantages of Istio:
 
 - (Optional) Install `istioctl`:
 
-> NOTE: We will use this tool to analyze namespaces and to verify if the pods have been injected with Istio sidecar pods
+> \[!NOTE]\
+> We will use this tool to analyze namespaces and to verify if the pods have been injected with Istio sidecar pods
 
 ```bash
 brew install istioctl
@@ -95,7 +97,8 @@ istioctl version
 istioctl analyze
 ```
 
-> **NOTE**: Add the `sidecar.istio.io/inject: "false"` annotation to the metadata section of the pod template. This will prevent the Istio sidecar from being injected into that specific pod.
+> \[!NOTE]\
+> Add the `sidecar.istio.io/inject: "false"` annotation to the metadata section of the pod template. This will prevent the Istio sidecar from being injected into that specific pod.
 
 ## Monitoring Stack
 
@@ -133,9 +136,40 @@ Instead of installing the helm charts for these applications, we will use the cu
 > You can read more information on how to add firewall rules for the GKE control plane nodes in the [GKE docs](https://cloud.google.com/kubernetes-engine/docs/how-to/private-clusters#add_firewall_rules)
 > Alternatively, you can disable the hooks by setting `prometheusOperator.admissionWebhooks.enabled=false`.
 
+## Logging Stack
+
+We will use the [EFK stack](https://medium.com/@tech_18484/simplifying-kubernetes-logging-with-efk-stack-158da47ce982) to setup logging for our containerized applications (which are installed via custom helm charts) on kubernetes. The `EFK stack` consists of Elasticsearch, FluentBit and Kibana to streamline the process of collecting, processing and visualizing logs.
+
+- **[Elasticsearch](https://www.elastic.co/elasticsearch)**: NoSQL database based on the `Lucene search engine`. It provides a distributed, multitenant-capable full-text search engine with an HTTP web interface and schema-free JSON documents.
+- **[Fluentbit](https://fluentbit.io/)**: Super fast, lightweight, and highly scalable logging and metrics processor and forwarder.
+- **[Kibana](https://www.elastic.co/kibana)** — Data visualization dashboard software for Elasticsearch.
+
+> \[NOTE]
+> Before installing the Helm chart on an EKS cluster, we must ensure the presence of a storage class and the AWS CSI driver for Elasticsearch. Elasticsearch functions as a database and is often deployed as a stateful set. This deployment configuration necessitates the use of Persistent Volume Claims (PVCs), and to fulfill those claims, we require storage resources. To achieve proper provisioning of EBS (Elastic Block Store) volumes within the EKS cluster, we rely on a storage class with the AWS EBS provisioner. Therefore, the prerequisites for successful EBS provisioning in the EKS cluster encompass the storage class and the EBS CSI driver. Refer [this blog](https://medium.com/@tech_18484/simplifying-kubernetes-logging-with-efk-stack-158da47ce982) for more details.
+
+### Working with EFK Stack
+
+1. Get the Helm repository information for elastic and fluentbit tools
+
+   ```bash
+   helm repo add elastic https://helm.elastic.co
+   helm repo add fluent https://fluent.github.io/helm-charts
+   helm repo update
+   ```
+
+2. Refer the Helm chart default values to configure the charts accordingly
+
+   ```bash
+   # example: fluent-bit chart values
+   helm show values fluent/fluent-bit > fluentbit-values.yaml
+   ```
+
 ## Configuring the chart values
 
 For specific `values.yaml`, refer their specific charts and create their respective `values.yaml` files based on the dummy `values.yaml` file. You can also use the `example.*.yaml` files in the `root/` directory to view specific values for the chart values.
+
+> \[NOTE]
+> Make sure to configure correct values depending on the kubernetes cluster you deploy to. If you are using minikube to test the deployment, make sure you edit the values accordingly, since minikube is a single-node kubernetes cluster.
 
 ## Infrastructure Setup
 

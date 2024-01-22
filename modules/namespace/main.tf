@@ -40,3 +40,12 @@ resource "kubernetes_namespace" "prometheus" {
     name = "prometheus"
   }
 }
+
+resource "kubernetes_namespace" "efk" {
+  metadata {
+    # labels = {
+    #   istio-injection = "enabled"
+    # }
+    name = "efk"
+  }
+}

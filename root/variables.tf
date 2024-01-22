@@ -22,6 +22,24 @@ variable "kube_prometheus_values_file" {
   default     = "./kube_prometheus_values.yaml"
 }
 
+variable "elasticsearch_values_file" {
+  type        = string
+  description = "The path to the elasticsearch_values.yaml file for the helm chart"
+  default     = "./elasticsearch_values.yaml"
+}
+
+variable "kibana_values_file" {
+  type        = string
+  description = "The path to the kibana_values.yaml file for the helm chart"
+  default     = "./kibana_values.yaml"
+}
+
+variable "fluentbit_values_file" {
+  type        = string
+  description = "The path to the fluentbit_values.yaml file for the helm chart"
+  default     = "./fluentbit_values.yaml"
+}
+
 variable "chart_path" {
   type        = string
   description = "The path to the charts/ directory to install local charts"
