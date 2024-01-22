@@ -149,7 +149,7 @@ We will use the [EFK stack](https://medium.com/@tech_18484/simplifying-kubernete
 
 ### Working with EFK Stack
 
-1. Get the Helm repository information for elastic and fluentbit tools
+- Get the Helm repository information for elastic and fluentbit tools
 
    ```bash
    helm repo add elastic https://helm.elastic.co
@@ -157,12 +157,39 @@ We will use the [EFK stack](https://medium.com/@tech_18484/simplifying-kubernete
    helm repo update
    ```
 
-2. Refer the Helm chart default values to configure the charts accordingly
+- Refer the Helm chart default values to configure the charts accordingly
 
    ```bash
    # example: fluent-bit chart values
    helm show values fluent/fluent-bit > fluentbit-values.yaml
    ```
+
+- To verify elasticsearch is up and running successfully:
+  - Run the below commands to get the username and password from the elasticsearch master pod:
+
+      ```bash
+      # get elasticsearch username
+      kubectl get secrets --namespace=efk elasticsearch-master-credentials -ojsonpath='{.data.username}' | base64 -d
+      # get elasticsearch password (exclude '%' at end in output of below command)
+      kubectl get secrets --namespace=efk elasticsearch-master-credentials -ojsonpath='{.data.password}' | base64 -d
+      ```
+
+  - Access the JSON response by accessing the link `https://<LoadBalancer-IP>:9200` and enter the username and password when prompted. Here the `LoadBalancer-IP` is the `External IP` provided to the elasticsearch service.
+
+- To verify Kibana is up and running successfully:
+  - Run the below commands to get the password and service account token for Kibana from the elasticsearch master pod:
+
+    ```bash
+    # get elasticsearch password (exclude '%' at end in output of below command)
+    kubectl get secrets --namespace=efk elasticsearch-master-credentials -ojsonpath=’{.data.password}’ | base64 -d
+    # get Kibana service account token
+    kubectl get secrets --namespace=efk kibana-kibana-es-token -ojsonpath=’{.data.token}’ | base64 -d
+    ```
+
+  - Access the Kibana dashboard by accessing the link `https://<LoadBalancer-IP>:5601` and enter the password and service account token when prompted. Here the `LoadBalancer-IP` is the `External IP` provided to the kibana service.
+
+  > \[\NOTE]
+  > Depending on the Kibana version installed, the dashboard might prompt to enter the elasticsearch username and password, in which case you do not need to get the service account token.
 
 ## Configuring the chart values
 
