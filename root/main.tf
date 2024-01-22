@@ -30,14 +30,27 @@ module "istio_gateway" {
   timeout    = var.timeout
 }
 
-
 resource "time_sleep" "install_istio_gateway" {
   depends_on      = [module.istio_gateway]
   create_duration = "20s"
 }
 
+module "logging_stack" {
+  depends_on                = [time_sleep.install_istio_gateway]
+  source                    = "../modules/efk"
+  timeout                   = var.timeout
+  elasticsearch_values_file = var.elasticsearch_values_file
+  kibana_values_file        = var.kibana_values_file
+  fluentbit_values_file     = var.fluentbit_values_file
+}
+
+resource "time_sleep" "install_logging_stack" {
+  depends_on      = [module.logging_stack]
+  create_duration = "20s"
+}
+
 module "monitoring_stack" {
-  depends_on                  = [time_sleep.install_istio_gateway]
+  depends_on                  = [time_sleep.install_logging_stack]
   source                      = "../modules/kube_prometheus"
   timeout                     = var.timeout
   kube_prometheus_values_file = var.kube_prometheus_values_file
@@ -47,6 +60,7 @@ resource "time_sleep" "install_monitoring_stack" {
   depends_on      = [module.monitoring_stack]
   create_duration = "20s"
 }
+
 module "infra_dependencies" {
   depends_on        = [time_sleep.install_monitoring_stack]
   source            = "../modules/infra_helm"
